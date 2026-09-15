@@ -8,4 +8,14 @@ public class songObj { //class for a new dataType called a song
         this.genre = genre; 
 
     }
+
+    public String getTitle() { //GETTER METHOD for retrieveing a songObj's title
+        return title;
+    }
+     public String getArtist() { //GETTER METHOD for retrieveing a songObj's Artist
+        return artist;
+    }
+    public String getGenre() { //GETTER METHOD for retrieveing a songObj's genre
+        return genre;
+    }
 }
