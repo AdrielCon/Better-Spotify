@@ -13,7 +13,7 @@ public class BetterSpotify {
         ArrayList <songObj> songList = new ArrayList<songObj>(); //Create empty ArrayList that will store ALL csv songs as objects 
 
         try { 
-            Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle
+            Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle-- UTF-8 is needed because asian characters
            fileSearch.nextLine(); // Make Sure Header doesn't become an object
            int totalRows = 0; //TEST
            int badRows = 0; //TEST
