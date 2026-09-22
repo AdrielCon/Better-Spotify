@@ -13,7 +13,7 @@ public class BetterSpotify {
         ArrayList <songObj> songList = new ArrayList<songObj>(); //Create empty ArrayList that will store ALL csv songs as objects 
 
         try { 
-            Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle-- UTF-8 is needed because asian characters
+            Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle
            fileSearch.nextLine(); // Make Sure Header doesn't become an object
            int totalRows = 0; //TEST
            int badRows = 0; //TEST
@@ -50,12 +50,46 @@ public class BetterSpotify {
             System.err.println(" Total Rows: " + totalRows );           
         
         } catch (FileNotFoundException e) { //incase file not found
-            System.err.println(" could not open file data.csv"); //incase file not found
+            System.err.println(" could not open file dataset.csv"); //incase file not found
         }
         Scanner userInput = new Scanner(System.in); //Creates variable to be inputed by USER
         System.out.println("Enter the name of a Song: "); //Prompt for user to input 
         String userTitle = userInput.nextLine(); //Reads the entire line that was provided by User
-        System.out.println( "You searched for: " + userTitle); //TEMP TEST 
+        
+        
+        //================================= Title Search =========================================
+        
+        songObj foundSong = null; //Create a songObj that is empty??
+        for (songObj currentSong : songList ) { //For Each Loop - For each songObj in songList, temporarily call that object currentSong
+            if (currentSong.getTitle().equalsIgnoreCase(userTitle) ) { // COMPARES currentSong's private title to the userTitle -- equalsIgnoreCase() makes sure titles are not CASE SENSITIVE 
+                foundSong = currentSong;
+                break;
+            }
+
+        }
+        //================================= Check if Song Found AND match genres once it is ===================================
+
+        if (foundSong != null) { // Check whether the Title Search was successful 
+
+            System.out.println("Song found!"); 
+            System.out.println("Title: " + foundSong.getTitle()); 
+            System.out.println("Artist: " + foundSong.getArtist()); 
+            System.out.println("Genre: " + foundSong.getGenre());
+            
+            ArrayList <songObj> matchingGenre = new ArrayList<songObj>(); // Creates an EMPTY LIST that will hold all songs of the same genre as input song
+            for (songObj currentSong : songList) { //loops through every songObj in the full CSV
+                if (currentSong.getGenre().equalsIgnoreCase(foundSong.getGenre())) { // Compares genres of our "pointer"
+                    if (currentSong != foundSong) {
+                        matchingGenre.add(currentSong); //Adds a REFERENCE copy of the songObj to pool of potential recommendations
+                    }
+                } 
+            }
+            System.out.println("Songs with matching genre: " + matchingGenre.size()); //TEMP TEST showing how many potential recommendations were found
+
+
+        } else { // foundSong remained NULL meaning no matching title was found
+            System.out.println("Song not found :( "); 
+        }
     }
     public static String[] parseCSVLine(String line) { //Method that takes the lines we read and returns a column of useful data
 
