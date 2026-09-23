@@ -12,10 +12,9 @@ public class BetterSpotify {
         System.out.println("Database obj created successfully"); //test to make sure object got created properly
 
         ArrayList <songObj> songList = new ArrayList<songObj>(); //Create empty ArrayList that will store ALL csv songs as objects 
-        HashMap <String, ArrayList<songObj>> titleIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with title as key
-        HashMap <String, ArrayList<songObj>> artistIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with artist as key
-        HashMap <String, ArrayList<songObj>> genreIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with genre as key
-
+        HashMap <String, ArrayList<songObj>> titleIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with the title as the key
+        HashMap <String, ArrayList<songObj>> artistIndex = new HashMap<String, ArrayList<songObj>>();
+        HashMap <String, ArrayList<songObj>> genreIndex = new HashMap<String, ArrayList<songObj>>();
         try { 
             Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle
            fileSearch.nextLine(); // Make Sure Header doesn't become an object
@@ -33,14 +32,26 @@ public class BetterSpotify {
                 }
 
                 String artist = columns[2]; //Takes the artist from current song and makes a variable out of it
-
+                String album = columns[3]; 
                 String title = columns[4];
 
+                double popularity = Double.parseDouble(columns[5]);
+                double danceability = Double.parseDouble(columns[8]);
+                double energy = Double.parseDouble(columns[9]);
+                double acousticness = Double.parseDouble(columns[14]);
+                double instrumentalness = Double.parseDouble(columns[15]);
+                double valence = Double.parseDouble(columns[17]);
+                double tempo = Double.parseDouble(columns[18]);
                 String genre = columns[20];
 
-                songObj currentSong = new songObj(title, artist, genre); //Takes variables and implements an Object
+                songObj currentSong = new songObj(
+                    title, artist, genre, album, popularity, danceability, 
+                    energy, acousticness, instrumentalness, valence, tempo
+                ); //Takes variables and implements an Object
 
                 songList.add(currentSong); //Adds the newly made Object into our Array
+
+                //================================= HashMap Indexing =========================================
 
                 String titleKey = currentSong.getTitle().toLowerCase(); //Creates a key for the HashMap that is the title of the song in lowercase
 
@@ -71,7 +82,6 @@ public class BetterSpotify {
                     newGenreList.add(currentSong);
                     genreIndex.put(genreKey, newGenreList); //Put the new list into the HashMap with the genre as the key
                 }
-
             } //End of while loop
 
             if (fileSearch.ioException() != null) { // Checks whether Scanner stopped reading because an input/output error occurred
@@ -81,13 +91,15 @@ public class BetterSpotify {
             fileSearch.close(); //always make sure to close a file 
             System.out.println("Songs loaded: " + songList.size()); //Prints out the number of songObj's we have to search from
             System.err.println(" Bad rows: " + badRows );
-            System.err.println(" Total Rows: " + totalRows );        
+            System.err.println(" Total Rows: " + totalRows );
+                
         } catch (FileNotFoundException e) { //incase file not found
             System.err.println(" could not open file dataset.csv"); //incase file not found
         }
         Scanner userInput = new Scanner(System.in); //Creates variable to be inputed by USER
         System.out.println("Enter the name of a Song: "); //Prompt for user to input 
         String userTitle = userInput.nextLine(); //Reads the entire line that was provided by User
+        userInput.close(); //Close the scanner after reading the user's input
         
         
         //================================= Title Search =========================================
@@ -108,6 +120,15 @@ public class BetterSpotify {
             System.out.println("Title: " + foundSong.getTitle()); 
             System.out.println("Artist: " + foundSong.getArtist()); 
             System.out.println("Genre: " + foundSong.getGenre());
+            
+            System.out.println("Album: " + foundSong.getAlbum());
+            System.out.println("Popularity: " + foundSong.getPopularity());
+            System.out.println("Danceability: " + foundSong.getDanceability());
+            System.out.println("Energy: " + foundSong.getEnergy());
+            System.out.println("Acousticness: " + foundSong.getAcousticness());
+            System.out.println("Instrumentalness: " + foundSong.getInstrumentalness());
+            System.out.println("Valence: " + foundSong.getValence());
+            System.out.println("Tempo: " + foundSong.getTempo());           
             
             ArrayList <songObj> matchingGenre = new ArrayList<songObj>(); // Creates an EMPTY LIST that will hold all songs of the same genre as input song
             for (songObj currentSong : songList) { //loops through every songObj in the full CSV
