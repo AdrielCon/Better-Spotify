@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run BetterSpotify",
+            "request": "launch",
+            "mainClass": "BetterSpotify",
+            "cwd": "${workspaceFolder}/project"
+        }
+    ]
+}

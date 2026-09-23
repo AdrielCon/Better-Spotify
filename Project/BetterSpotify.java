@@ -2,6 +2,7 @@ import java.util.ArrayList; //to create list of songs
 import java.util.Scanner; //allows program to read from user inputs
 import java.io.File; //allows program to read from outside files
 import java.io.FileNotFoundException; //error handling in case spotify file not found
+import java.util.HashMap; //allows program to create a hashmap for title, artist, and genre recommendations
 
 public class BetterSpotify {
 
@@ -11,6 +12,9 @@ public class BetterSpotify {
         System.out.println("Database obj created successfully"); //test to make sure object got created properly
 
         ArrayList <songObj> songList = new ArrayList<songObj>(); //Create empty ArrayList that will store ALL csv songs as objects 
+        HashMap <String, ArrayList<songObj>> titleIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with title as key
+        HashMap <String, ArrayList<songObj>> artistIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with artist as key
+        HashMap <String, ArrayList<songObj>> genreIndex = new HashMap<String, ArrayList<songObj>>(); //Create empty HashMap that will store ALL csv songs as objects with genre as key
 
         try { 
             Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); //scanner obj created that points at Kaggle
@@ -38,6 +42,36 @@ public class BetterSpotify {
 
                 songList.add(currentSong); //Adds the newly made Object into our Array
 
+                String titleKey = currentSong.getTitle().toLowerCase(); //Creates a key for the HashMap that is the title of the song in lowercase
+
+                if (titleIndex.containsKey(titleKey)) { //Checks if the title already exists in the HashMap
+                    titleIndex.get(titleKey).add(currentSong); //If it does, add the current song to the existing list
+                } else {
+                    ArrayList<songObj> newTitleList = new ArrayList<songObj>(); //If it doesn't, create a new list and add the current song
+                    newTitleList.add(currentSong);
+                    titleIndex.put(titleKey, newTitleList); //Put the new list into the HashMap with the title as the key
+                }
+
+                String artistKey = currentSong.getArtist().toLowerCase(); //Creates a key for the HashMap that is the artist of the song in lowercase
+
+                if (artistIndex.containsKey(artistKey)) { //Checks if the artist already exists in the HashMap
+                    artistIndex.get(artistKey).add(currentSong); //If it does, add the current song to the existing list
+                } else {
+                    ArrayList<songObj> newArtistList = new ArrayList<songObj>(); //If it doesn't, create a new list and add the current song
+                    newArtistList.add(currentSong);
+                    artistIndex.put(artistKey, newArtistList); //Put the new list into the HashMap with the artist as the key
+                }
+
+                String genreKey = currentSong.getGenre().toLowerCase(); //Creates a key for the HashMap that is the genre of the song in lowercase
+
+                if (genreIndex.containsKey(genreKey)) { //Checks if the genre already exists in the HashMap
+                    genreIndex.get(genreKey).add(currentSong); //If it does, add the current song to the existing list
+                } else {
+                    ArrayList<songObj> newGenreList = new ArrayList<songObj>(); //If it doesn't, create a new list and add the current song
+                    newGenreList.add(currentSong);
+                    genreIndex.put(genreKey, newGenreList); //Put the new list into the HashMap with the genre as the key
+                }
+
             } //End of while loop
 
             if (fileSearch.ioException() != null) { // Checks whether Scanner stopped reading because an input/output error occurred
@@ -47,8 +81,7 @@ public class BetterSpotify {
             fileSearch.close(); //always make sure to close a file 
             System.out.println("Songs loaded: " + songList.size()); //Prints out the number of songObj's we have to search from
             System.err.println(" Bad rows: " + badRows );
-            System.err.println(" Total Rows: " + totalRows );           
-        
+            System.err.println(" Total Rows: " + totalRows );        
         } catch (FileNotFoundException e) { //incase file not found
             System.err.println(" could not open file dataset.csv"); //incase file not found
         }
