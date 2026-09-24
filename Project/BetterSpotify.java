@@ -97,38 +97,55 @@ public class BetterSpotify {
             System.err.println(" could not open file dataset.csv"); //incase file not found
         }
         Scanner userInput = new Scanner(System.in); //Creates variable to be inputed by USER
-        System.out.println("Enter the name of a Song: "); //Prompt for user to input 
-        String userTitle = userInput.nextLine(); //Reads the entire line that was provided by User
-        userInput.close(); //Close the scanner after reading the user's input
-        
-        
-        //================================= Title Search =========================================
-        
-        songObj foundSong = null; //Create a songObj that is empty??
-        for (songObj currentSong : songList ) { //For Each Loop - For each songObj in songList, temporarily call that object currentSong
-            if (currentSong.getTitle().equalsIgnoreCase(userTitle) ) { // COMPARES currentSong's private title to the userTitle -- equalsIgnoreCase() makes sure titles are not CASE SENSITIVE 
-                foundSong = currentSong;
+        System.out.println("Welcome to BetterSpotify!");
+        System.out.println("1. Search");
+        System.out.println("2.Liked Songs");
+        System.out.println("3. Playlists");
+        System.out.println("4. Create Playlist");
+        System.out.println("5. Exit");
+        System.out.println("Please select an option: ");
+        int userOption = userInput.nextInt();
+        userInput.nextLine(); // Consume the newline character left by nextInt()
+
+
+        switch (userOption) {//Switch statement that will execute code based on user input
+            case 1:
+                searchSong(userInput, songList);
                 break;
-            }
-
+            case 2:
+                System.out.println("Liked Songs");
+                break;
+            case 3:
+                System.out.println("Playlists");
+                break;
+            case 4:
+                System.out.println("Create Playlist");
+            case 5:
+                System.out.println("Exiting...");
+                break;
+            default:
+                System.out.println("Invalid option. Please try again.");
         }
-        //================================= Check if Song Found AND match genres once it is ===================================
+    }
+//================================= Search Method =========================================
+     public static void searchSong(Scanner userInput, ArrayList<songObj> songList) {
+           System.out.println("Enter the name of a song");
+           String userTitle = userInput.nextLine();
 
-        if (foundSong != null) { // Check whether the Title Search was successful 
+           songObj foundSong = null;
+
+              for (songObj currentSong : songList) { //loops through every songObj in the full CSV
+                 if (currentSong.getTitle().equalsIgnoreCase(userTitle)) { // Compares title of our "pointer"
+                      foundSong = currentSong; //If a match is found, we store the reference to that songObj in foundSong
+                      break; //Exits the loop since we found a match
+                 }
+                }
+         if (foundSong != null) { // Check whether the Title Search was successful 
 
             System.out.println("Song found!"); 
             System.out.println("Title: " + foundSong.getTitle()); 
             System.out.println("Artist: " + foundSong.getArtist()); 
-            System.out.println("Genre: " + foundSong.getGenre());
-            
-            System.out.println("Album: " + foundSong.getAlbum());
-            System.out.println("Popularity: " + foundSong.getPopularity());
-            System.out.println("Danceability: " + foundSong.getDanceability());
-            System.out.println("Energy: " + foundSong.getEnergy());
-            System.out.println("Acousticness: " + foundSong.getAcousticness());
-            System.out.println("Instrumentalness: " + foundSong.getInstrumentalness());
-            System.out.println("Valence: " + foundSong.getValence());
-            System.out.println("Tempo: " + foundSong.getTempo());           
+            System.out.println("Genre: " + foundSong.getGenre());     
             
             ArrayList <songObj> matchingGenre = new ArrayList<songObj>(); // Creates an EMPTY LIST that will hold all songs of the same genre as input song
             for (songObj currentSong : songList) { //loops through every songObj in the full CSV
@@ -136,7 +153,7 @@ public class BetterSpotify {
                     if (currentSong != foundSong) {
                         matchingGenre.add(currentSong); //Adds a REFERENCE copy of the songObj to pool of potential recommendations
                     }
-                } 
+                  } 
             }
             System.out.println("Songs with matching genre: " + matchingGenre.size()); //TEMP TEST showing how many potential recommendations were found
 
@@ -157,5 +174,6 @@ public class BetterSpotify {
             }
          }
          return columns;
-    }
+        
+       }
 }
