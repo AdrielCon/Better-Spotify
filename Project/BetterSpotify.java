@@ -54,17 +54,21 @@ public class BetterSpotify {
         } catch (FileNotFoundException e) { //incase file not found
             System.err.println(" could not open file dataset.csv"); //incase file not found
         }
-        Scanner userInput = new Scanner(System.in); //Creates variable to be inputed by USER
-        System.out.println("Welcome to BetterSpotify!");
-        System.out.println("1. Recommended Search");
-        System.out.println("2. My Playlists");
-        System.out.println("3. Exit");
-        System.out.println("Please select an option: ");
-        int userOption = userInput.nextInt();
-        userInput.nextLine(); // Consume the newline character left by nextInt()
+        boolean programRunning = true; //This will be used to keep the program running until the user chooses to exit
+
+        while (programRunning) { //This will keep the program running until the user chooses to exit
+
+            Scanner userInput = new Scanner(System.in); //Creates variable to be inputed by USER
+              System.out.println("Welcome to BetterSpotify!");
+              System.out.println("1. Recommended Search");
+              System.out.println("2. My Playlists");
+              System.out.println("3. Exit");
+              System.out.println("Please select an option: ");
+              int userOption = userInput.nextInt();
+              userInput.nextLine(); // Consume the newline character left by nextInt()
 
 
-        switch (userOption) {//Switch statement that will execute code based on user input
+            switch (userOption) {//Switch statement that will execute code based on user input
             
             case 1: System.out.println("Pleaase enter the title of a song you would like to search for: ");
             String userTitle = userInput.nextLine();
@@ -198,14 +202,46 @@ public class BetterSpotify {
 
                 break;
             case 2:
-                System.out.println("My Playlists");
+                boolean inPlaylistMenu = true; // Flag to control the playlist menu loop
+                while (inPlaylistMenu) { // This loop will keep the user in the playlist menu until they choose to go back to the main menu
+                System.out.println("1. My Liked Songs Playlist");
+                System.out.println("2. View Playlists");
+                System.out.println("3. Create New Playlist");
+                System.out.println("4. Back to Main Menu");
+                System.out.println("Please select an option: ");
+                int playlistOptions = userInput.nextInt();
+                userInput.nextLine(); // Consume the newline character left by nextInt()
+
+                switch(playlistOptions) {
+                    case 1:
+                        System.out.println("My Liked Songs Playlist:");
+                        // Display the songs in the liked songs playlist
+                        break;
+                    case 2:
+                        System.out.println("View Playlists:");
+                        break;
+                    case 3:
+                        System.out.println("Create New Playlist:");
+                        // Code to create a new playlist
+                        break;
+                    case 4:
+                        System.out.println("Returning to Main Menu...");
+                        inPlaylistMenu = false; // Set the flag to false to exit the playlist menu loop
+                        break;
+                }
+            } //Closes the playlist menu loop
                 break;
             case 3:
                 System.out.println("Exiting...");
+                programRunning = false; // Set the flag to false to exit the loop
                 break;
-            default:
-                System.out.println("Invalid option. Please try again."); //default case if user input is not 1, 2, or 3
-        }//end of switch statement
+            case 4:
+                if (userOption < 1 || userOption > 4) {
+                    System.out.println("Invalid option. Please select a valid option.");
+                }
+                break;
+            }
+        }
     }//end of main method
 //=========================================== Method to parse CSV lines ==========================================================
             public static String[] parseCSVLine(String line) { //Method that takes the lines we read and returns a column of useful data
