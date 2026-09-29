@@ -13,10 +13,10 @@ public class BetterSpotify {
         File KaggleDataset = new File("dataset.csv"); // creates a file object that will hold data.csv
         HashMap<String, ArrayList<String>> playlists = new HashMap<>();
         try {
-            if (!PlaylistFile.exists()) {//checks if playlists.txt exists
+            if (!PlaylistFile.exists()) {// checks if playlists.txt exists
                 PlaylistFile.createNewFile(); // Creates a new file if it doesn't exist
-                
-                //Writes [Liked Songs] into playlists.txt
+
+                // Writes [Liked Songs] into playlists.txt
                 FileWriter writer = new FileWriter(PlaylistFile);
                 writer.write("[Liked Songs]\n");
                 writer.close();
@@ -30,10 +30,9 @@ public class BetterSpotify {
         Scanner userInput = new Scanner(System.in);
         System.out.println("Database obj created successfully"); // test to make sure object got created properly
 
-        ArrayList<songObj> songList = new ArrayList<songObj>(); // Create empty ArrayList that will store ALL csv songs
-                                                                // as objects
-        // ======================================================Building large CSV
-        // array====================================================
+        //emtpy ArrayList that will hold songObj
+        ArrayList<songObj> songList = new ArrayList<songObj>();
+        //=====builds large csv array
         try {
             Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); // scanner obj created that points at Kaggle
             fileSearch.nextLine(); // Make Sure Header doesn't become an object
@@ -42,16 +41,14 @@ public class BetterSpotify {
             while (fileSearch.hasNextLine()) { // initiating a loop that repeasts until file ends
                 totalRows++;
 
-                String dataline = fileSearch.nextLine(); // stores the next line from dataset and stores it in a string
-                                                         // variable
+                String dataline = fileSearch.nextLine(); // stores the next line from dataset in string a variable
                 String[] columns = parseCSVLine(dataline);
 
-                if (columns.length < 21) { // Checks for any ROWS with missing data which leads to errors in creating
-                                           // songObj's
+                if (columns.length < 21) { // Checks for any ROWS with missing data which leads to errors
                     badRows++;
                     continue; // Skips bad ROWS
                 }
-                //Pulls values from songObj column[i]
+                // Pulls values from songObj column[i]
                 String artist = columns[2];
                 String title = columns[4];
 
@@ -67,13 +64,13 @@ public class BetterSpotify {
                 songList.add(currentSong);
             }
 
-            //Scanner error handling
+            // Scanner error handling
             if (fileSearch.ioException() != null) {
                 System.err.println(fileSearch.ioException());
             }
 
             fileSearch.close();
-            System.out.println("Songs loaded: " + songList.size()); //Prints number of songs
+            System.out.println("Songs loaded: " + songList.size()); // Prints number of songs
             System.err.println(" Bad rows: " + badRows);
             System.err.println(" Total Rows: " + totalRows);
 
@@ -94,7 +91,7 @@ public class BetterSpotify {
         try {
             Scanner playlistScanner = new Scanner(playlistFile);
             String currentPlaylist = null;
-            while (playlistScanner.hasNextLine()) {//reads playlists.txt line by line
+            while (playlistScanner.hasNextLine()) {// reads playlists.txt line by line
                 String line = playlistScanner.nextLine();
 
                 if (line.startsWith("[") && line.endsWith("]")) {// detects playlist names
@@ -134,9 +131,7 @@ public class BetterSpotify {
     public static String[] parseCSVLine(String line) { // Method that takes the lines we read and returns a column of
         // useful data
 
-        String[] columns = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); // Very Important-- Splits only on
-                                                                                // commas that are NOT inside
-                                                                                // quotations. THIS IS STOLEN
+        String[] columns = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); //Splits commas not in quotations
         for (int i = 0; i < columns.length; i++) { // Loops through every column that was created by above command
             columns[i] = columns[i].trim(); // Removes unnecessary spaces from the beginning/end of the column
 
@@ -206,7 +201,7 @@ public class BetterSpotify {
             System.out.println("Artist: " + foundSong.getArtist());
             System.out.println("Genre: " + foundSong.getGenre());
 
-            //creates an empty list that will hold songs of same genre
+            // creates an empty list that will hold songs of same genre
             ArrayList<songObj> matchingGenre = new ArrayList<songObj>();
 
             for (songObj currentSong : songList) { // loops through every songObj in the full CSV
@@ -237,15 +232,15 @@ public class BetterSpotify {
             // Determining how similar each song in <matchingGenre> to our input song
             for (songObj currentSong : matchingGenre) {
 
-                //Differenc of danceability
+                // Differenc of danceability
                 double danceDifference = foundSong.getDanceability() - currentSong.getDanceability();
 
-                //Difference of energy
+                // Difference of energy
                 double energyDifference = foundSong.getEnergy() - currentSong.getEnergy();
-                double distance = Math //Plugs difference totals into distance formula
+                double distance = Math // Plugs difference totals into distance formula
                         .sqrt((danceDifference * danceDifference) + (energyDifference * energyDifference));
 
-                //Caps recommendation size to 4
+                // Caps recommendation size to 4
                 if (recommendations.size() < 4) {
                     recommendations.add(currentSong);
                     distances.add(distance);
@@ -254,13 +249,13 @@ public class BetterSpotify {
                 else { // This will run once Recommendations List if full
                     int highestDistanceIndex = 0;
 
-                    //determines last song in the list of 4
+                    // determines last song in the list of 4
                     for (int i = 1; i < distances.size(); i++) {
                         if (distances.get(i) > distances.get(highestDistanceIndex)) {
                         }
                     }
 
-                    if (distance < distances.get(highestDistanceIndex)) { 
+                    if (distance < distances.get(highestDistanceIndex)) {
                         recommendations.set(highestDistanceIndex, currentSong);
                         distances.set(highestDistanceIndex, distance);
                     }
@@ -271,14 +266,14 @@ public class BetterSpotify {
             System.out.println("\nThese songs are similar to " + foundSong.getTitle());
 
             for (int i = 0; i < recommendations.size(); i++) {
-                songObj similarToFoundSong = recommendations.get(i); 
+                songObj similarToFoundSong = recommendations.get(i);
 
-                System.out.println(//prints list of top 4 most like songs
+                System.out.println(// prints list of top 4 most like songs
                         (i + 1) + ". " + similarToFoundSong.getTitle() + "- " + similarToFoundSong.getArtist());
             }
 
-            //Allows user to add a song from list to a playlist
-            System.out.println("\nChoose a song to add to \"a playlist\" by tying 1-4: "); 
+            // Allows user to add a song from list to a playlist
+            System.out.println("\nChoose a song to add to \"a playlist\" by tying 1-4: ");
 
             // ===============================================================
             // Error Handling of user input
@@ -310,7 +305,7 @@ public class BetterSpotify {
             // Creates a somgObj based on index of userChoice input
             songObj chosenSong = recommendations.get(userChoice - 1);
 
-            //Prints the song chosen by the user
+            // Prints the song chosen by the user
             System.out.println("You chose: " + chosenSong.getTitle() + " - " + chosenSong.getArtist());
             String selectedPlaylistName = selectPlaylist(userInput, playlists);
             if (selectedPlaylistName != null) {
@@ -334,12 +329,12 @@ public class BetterSpotify {
             System.out.println("2. View my Playlists");
             System.out.println("3. Create New Playlist");
             System.out.println("4. Back to Main Menu");
-            System.out.println("Please select an option: ");//Prints menu options
+            System.out.println("Please select an option: ");// Prints menu options
 
             int playlistOption = userInput.nextInt();
             userInput.nextLine();
 
-            switch (playlistOption) {//input cases based on user input
+            switch (playlistOption) {// input cases based on user input
                 case 1:
                     viewPlaylist(playlists, "Liked Songs", playlistFile, userInput);
                     break;
@@ -398,10 +393,11 @@ public class BetterSpotify {
         }
     }
 
+    // Lets user choose which playlist to add a song to
     public static String selectPlaylist(Scanner userInput, HashMap<String, ArrayList<String>> playlists) {
         ArrayList<String> playlistNames = new ArrayList<String>();
         playlistNames.add("Liked Songs");
-        for (String playlistName : playlists.keySet()) {
+        for (String playlistName : playlists.keySet()) {// makes sure "Liked Songs" is first on list
             if (!playlistName.equals("Liked Songs")) {
                 playlistNames.add(playlistName);
             }
@@ -423,6 +419,7 @@ public class BetterSpotify {
         return playlistNames.get(playListChoice - 1);
     }
 
+    // Handles logit for displaying playlists and sorting playlist songs
     public static void viewPlaylist(HashMap<String, ArrayList<String>> playlists, String playlistName,
             File playlistFile, Scanner userInput) {
         ArrayList<String> selectedPlaylist = playlists.get(playlistName);
@@ -463,7 +460,7 @@ public class BetterSpotify {
                     int sortChoice = userInput.nextInt();
                     userInput.nextLine();
 
-                    switch (sortChoice) {
+                    switch (sortChoice) {// nested switch case for sorting songs
 
                         case 1:
                         case 2:
@@ -521,6 +518,7 @@ public class BetterSpotify {
         System.out.println(chosenSong.getTitle() + " was added to " + playlistName);
     }
 
+    // Provides user with option to delete a song from a playlist
     public static void deleteSong(HashMap<String, ArrayList<String>> playlists, String playlistName, File playlistFile,
             Scanner userInput) {
         ArrayList<String> selectedPlaylist = playlists.get(playlistName);
@@ -540,6 +538,7 @@ public class BetterSpotify {
         System.out.println(removedSong + " was deleted from " + playlistName);
     }
 
+    // handles logit for sorting songs in a playlist
     public static void sortPlaylist(
             ArrayList<String> selectedPlaylist,
             int sortChoice) {
@@ -576,21 +575,25 @@ public class BetterSpotify {
         for (int i = 1; i < selectedPlaylist.size(); i++) {
 
             String currentSong = selectedPlaylist.get(i);
-            String[] currentSongData = currentSong.split("\\|");
+            String[] currentSongData = currentSong.split("\\|");// Splits ea value into indexes
             String currentValue = currentSongData[fieldIndex];
 
-            int j = i - 1;
+            int j = i - 1;// position of value before current value
 
             while (j >= 0) {
 
                 String previousSong = selectedPlaylist.get(j);
-                String[] previousSongData = previousSong.split("\\|");
+                String[] previousSongData = previousSong.split("\\|");// Splits ea value into indexes
                 String previousValue = previousSongData[fieldIndex];
 
                 int comparison = previousValue.compareToIgnoreCase(currentValue);
+                //comparison logic
+                //if prev val comes before curr val it = negative
+                //if prev val is same as curr val it = 0
+                //if prev val comes after curr val it = positive
 
-                if ((ascending && comparison > 0) ||
-                        (!ascending && comparison < 0)) {
+                if ((ascending && comparison > 0) ||//ascends if statment is true
+                        (!ascending && comparison < 0)) {//descends if statement is true
 
                     selectedPlaylist.set(j + 1, previousSong);
                     j--;
