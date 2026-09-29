@@ -13,9 +13,10 @@ public class BetterSpotify {
         File KaggleDataset = new File("dataset.csv"); // creates a file object that will hold data.csv
         HashMap<String, ArrayList<String>> playlists = new HashMap<>();
         try {
-            if (!PlaylistFile.exists()) {
+            if (!PlaylistFile.exists()) {//checks if playlists.txt exists
                 PlaylistFile.createNewFile(); // Creates a new file if it doesn't exist
-
+                
+                //Writes [Liked Songs] into playlists.txt
                 FileWriter writer = new FileWriter(PlaylistFile);
                 writer.write("[Liked Songs]\n");
                 writer.close();
@@ -50,8 +51,7 @@ public class BetterSpotify {
                     badRows++;
                     continue; // Skips bad ROWS
                 }
-                // ============================Pulling out sing data class vlaues from CSV
-                // columns to maake aa sing songObj per row=========================
+                //Pulls values from songObj column[i]
                 String artist = columns[2];
                 String title = columns[4];
 
@@ -62,34 +62,18 @@ public class BetterSpotify {
                 String genre = columns[20];
                 double durationMs = Double.parseDouble(columns[6]);
 
-                songObj currentSong = new songObj(title, artist, genre, danceability, energy, durationMs, album); // creates
-                                                                                                                  // a
-                                                                                                                  // new
-                                                                                                                  // songObj
-                                                                                                                  // with
-                                                                                                                  // the
-                                                                                                                  // data
-                                                                                                                  // from
-                                                                                                                  // the
-                                                                                                                  // current
-                                                                                                                  // line
-                                                                                                                  // of
-                                                                                                                  // the
-                                                                                                                  // dataset
+                songObj currentSong = new songObj(title, artist, genre, danceability, energy, durationMs, album);
 
                 songList.add(currentSong);
             }
-            // ===============================Error Handling for
-            // Scanner=========================================================
-            if (fileSearch.ioException() != null) { // Checks whether Scanner stopped reading because an input/output
-                                                    // error occurred
-                System.err.println(fileSearch.ioException()); // Prints the exact error that caused Scanner to stop
-                                                              // reading
+
+            //Scanner error handling
+            if (fileSearch.ioException() != null) {
+                System.err.println(fileSearch.ioException());
             }
 
-            fileSearch.close(); // always make sure to close a file
-            System.out.println("Songs loaded: " + songList.size()); // Prints out the number of songObj's we have to
-                                                                    // search from
+            fileSearch.close();
+            System.out.println("Songs loaded: " + songList.size()); //Prints number of songs
             System.err.println(" Bad rows: " + badRows);
             System.err.println(" Total Rows: " + totalRows);
 
@@ -97,10 +81,36 @@ public class BetterSpotify {
             System.err.println(" could not open file dataset.csv"); // incase file not found
 
         }
-        mainMenu(userInput, songList, playlists, PlaylistFile);
+        mainMenu(userInput, songList, playlists, PlaylistFile);// Calls method for main menu logic
 
     }
 
+    // ==============
+    // File Loading Data
+    // ===============
+
+    // Reads saved data from playlists.txt and loads them into the playlist HashMap.
+    public static void loadPlaylists(File playlistFile, HashMap<String, ArrayList<String>> playlists) {
+        try {
+            Scanner playlistScanner = new Scanner(playlistFile);
+            String currentPlaylist = null;
+            while (playlistScanner.hasNextLine()) {//reads playlists.txt line by line
+                String line = playlistScanner.nextLine();
+
+                if (line.startsWith("[") && line.endsWith("]")) {// detects playlist names
+                    currentPlaylist = line.substring(1, line.length() - 1);
+                    playlists.put(currentPlaylist, new ArrayList<String>());
+                } else if (currentPlaylist != null && !line.isBlank()) {// prevents adding empty spaces as fake songs
+                    playlists.get(currentPlaylist).add(line);// correctly reads songs inside playlist
+                }
+            }
+            playlistScanner.close();
+        } catch (FileNotFoundException e) {
+            System.err.println("Could not find playlist file.\n");
+        }
+    }
+
+    // Writes the current playlist HahsMap to playlist.txt for persistent storage.
     public static void savePlaylist(File playlistFile, HashMap<String, ArrayList<String>> playlists) {
         try {
             FileWriter writer = new FileWriter(playlistFile);
@@ -115,35 +125,12 @@ public class BetterSpotify {
             }
             writer.close();
         } catch (Exception e) {
-            System.out.println("Could not save playlist.");
+            System.out.println("Could not save playlist.\n");
         }
     }
 
-    public static void loadPlaylists(File playlistFile, HashMap<String, ArrayList<String>> playlists) { // Finds
-                                                                                                        // playlist
-                                                                                                        // names and
-                                                                                                        // adds in songs
-                                                                                                        // to its
-                                                                                                        // playlist
-        try {
-            Scanner playlistScanner = new Scanner(playlistFile);
-            String currentPlaylist = null;
-            while (playlistScanner.hasNextLine()) {
-                String line = playlistScanner.nextLine();
-
-                if (line.startsWith("[") && line.endsWith("]")) {// detects playlist names
-                    currentPlaylist = line.substring(1, line.length() - 1);
-                    playlists.put(currentPlaylist, new ArrayList<String>());
-                } else if (currentPlaylist != null && !line.isBlank()) {// prevents adding empty spaces as fake songs
-                    playlists.get(currentPlaylist).add(line);// correctly reads songs inside playlist
-                }
-            }
-            playlistScanner.close();
-        } catch (FileNotFoundException e) {
-            System.err.println("Could not findd playlist file.");
-        }
-    }
-
+    // Separates a CSV row into individual fields while accounting for quoted
+    // commas.
     public static String[] parseCSVLine(String line) { // Method that takes the lines we read and returns a column of
         // useful data
 
@@ -160,6 +147,184 @@ public class BetterSpotify {
         return columns;
     }
 
+    // =============
+    // MAIN MENU
+    // =============
+    // Displays and controls the program's main menu.
+    public static void mainMenu(Scanner userInput, ArrayList<songObj> songList,
+            HashMap<String, ArrayList<String>> playlists, File playlistFile) {// Handles main menu logic
+        boolean programRunning = true;
+
+        while (programRunning) {
+            System.out.println("Welcome to BetterSpotify!");
+            System.out.println("1. Recommended Search");
+            System.out.println("2. My Playlists");
+            System.out.println("3. Exit");
+            System.out.println("Please select an option: ");
+            int userOption = userInput.nextInt();
+            userInput.nextLine(); // Consume the newline character left by nextInt()
+            switch (userOption) {
+                case 1:
+                    reccomendedSearch(songList, userInput, playlists, playlistFile);
+                    break;
+                case 2:
+                    playlistMenu(userInput, playlists, playlistFile);
+                    break;
+                case 3:
+                    System.out.println("Goodbye");
+                    programRunning = false;
+                    break;
+                default:
+                    System.out.println("Your number must be 1-3. \nPlease try agian\n");
+            }
+        }
+    }
+
+    // =======================
+    // RECCOMENDATION SYSTEM
+    // =======================
+
+    // Searches for a user's song and finds similar songs using genre, danceability,
+    // energy, and Euclidean distance.
+    public static void reccomendedSearch(ArrayList<songObj> songList, Scanner userInput,
+            HashMap<String, ArrayList<String>> playlists, File playlistFile) {
+        System.out.println("Please enter the title of a song you would like to search for: ");
+        String userTitle = userInput.nextLine();
+
+        // Ttitle search
+        songObj foundSong = null;
+        for (songObj currentSong : songList) {// Check if Song Found AND match genres once it is
+            if (currentSong.getTitle().equalsIgnoreCase(userTitle)) {
+                foundSong = currentSong;
+                break;
+            }
+        }
+        if (foundSong != null) { // Check whether the Title Search was successful
+
+            System.out.println("Song found!");
+            System.out.println("Title: " + foundSong.getTitle());
+            System.out.println("Artist: " + foundSong.getArtist());
+            System.out.println("Genre: " + foundSong.getGenre());
+
+            //creates an empty list that will hold songs of same genre
+            ArrayList<songObj> matchingGenre = new ArrayList<songObj>();
+
+            for (songObj currentSong : songList) { // loops through every songObj in the full CSV
+                if (currentSong.getGenre().equalsIgnoreCase(foundSong.getGenre())) { // Compares genres of our "pointer"
+
+                    boolean sameTitle = currentSong.getTitle().equalsIgnoreCase(foundSong.getTitle());
+                    // ^^Compares input song's title to every other song's title.^^
+
+                    boolean sameArtist = currentSong.getArtist().equalsIgnoreCase(foundSong.getArtist());
+                    // ^^Compares Input song's artist to every other song's artist.^^
+
+                    if (!(sameTitle && sameArtist)) {
+                        matchingGenre.add(currentSong);
+                        // ^^Adds a REFERENCE copy of the songObj to pool of potential recommendations.
+                    }
+                }
+            }
+
+            // =====Genereating reccomendations======
+            ArrayList<songObj> recommendations = new ArrayList<songObj>();
+            // ^^^This is where we will store our most similar songs that get recommended to
+            // the user.
+
+            ArrayList<Double> distances = new ArrayList<Double>();
+            // ^^Each song has a "distance" relative to our user's song foundSong. And those
+            // ^^distances will be stored here for comparison later.
+
+            // Determining how similar each song in <matchingGenre> to our input song
+            for (songObj currentSong : matchingGenre) {
+
+                //Differenc of danceability
+                double danceDifference = foundSong.getDanceability() - currentSong.getDanceability();
+
+                //Difference of energy
+                double energyDifference = foundSong.getEnergy() - currentSong.getEnergy();
+                double distance = Math //Plugs difference totals into distance formula
+                        .sqrt((danceDifference * danceDifference) + (energyDifference * energyDifference));
+
+                //Caps recommendation size to 4
+                if (recommendations.size() < 4) {
+                    recommendations.add(currentSong);
+                    distances.add(distance);
+                }
+
+                else { // This will run once Recommendations List if full
+                    int highestDistanceIndex = 0;
+
+                    //determines last song in the list of 4
+                    for (int i = 1; i < distances.size(); i++) {
+                        if (distances.get(i) > distances.get(highestDistanceIndex)) {
+                        }
+                    }
+
+                    if (distance < distances.get(highestDistanceIndex)) { 
+                        recommendations.set(highestDistanceIndex, currentSong);
+                        distances.set(highestDistanceIndex, distance);
+                    }
+
+                }
+            }
+
+            System.out.println("\nThese songs are similar to " + foundSong.getTitle());
+
+            for (int i = 0; i < recommendations.size(); i++) {
+                songObj similarToFoundSong = recommendations.get(i); 
+
+                System.out.println(//prints list of top 4 most like songs
+                        (i + 1) + ". " + similarToFoundSong.getTitle() + "- " + similarToFoundSong.getArtist());
+            }
+
+            //Allows user to add a song from list to a playlist
+            System.out.println("\nChoose a song to add to \"a playlist\" by tying 1-4: "); 
+
+            // ===============================================================
+            // Error Handling of user input
+            // =========================================================
+            int userChoice;
+
+            while (true) { // This will repeat until a valid input is given (int 1-4)
+
+                if (userInput.hasNextInt()) { // check for INTEGER
+
+                    userChoice = userInput.nextInt(); // Reads the integer
+
+                    if (userChoice >= 1 && userChoice <= 4) { // Checks that integer is within valid range
+                                                              // <recommendations>
+
+                        break; // A valid input has been input
+
+                    }
+                }
+
+                else { // Loops immediately if input is not an integer
+
+                    userInput.next(); // clears the invalid input
+                }
+
+                System.out.println("Invalid input. Please enter a number from 1-4.\n"); // warning of invalid input
+            }
+
+            // Creates a somgObj based on index of userChoice input
+            songObj chosenSong = recommendations.get(userChoice - 1);
+
+            //Prints the song chosen by the user
+            System.out.println("You chose: " + chosenSong.getTitle() + " - " + chosenSong.getArtist());
+            String selectedPlaylistName = selectPlaylist(userInput, playlists);
+            if (selectedPlaylistName != null) {
+                addToPlaylist(playlistFile, chosenSong, selectedPlaylistName, playlists);
+            }
+        } else { // foundSong remained NULL meaning no matching title was found
+            System.out.println("Song not found :( ");
+        }
+    }
+
+    // ====================
+    // PLAYLIST MANAAGEMENT
+    // ====================
+
     // =======Logic for playlist sub menu===============================
     public static void playlistMenu(Scanner userInput, HashMap<String, ArrayList<String>> playlists,
             File playlistFile) {
@@ -169,12 +334,12 @@ public class BetterSpotify {
             System.out.println("2. View my Playlists");
             System.out.println("3. Create New Playlist");
             System.out.println("4. Back to Main Menu");
-            System.out.println("Please select an option: ");
+            System.out.println("Please select an option: ");//Prints menu options
 
             int playlistOption = userInput.nextInt();
             userInput.nextLine();
 
-            switch (playlistOption) {
+            switch (playlistOption) {//input cases based on user input
                 case 1:
                     viewPlaylist(playlists, "Liked Songs", playlistFile, userInput);
                     break;
@@ -188,12 +353,13 @@ public class BetterSpotify {
                     playlistMenuRunning = false;
                     break;
                 default:
-                    System.out.println("Invalid response, please try again fucker.");
+                    System.out.println("Invalid input. Please enter a number 1-4.\n");
                     break;
             }
         }
     }
 
+    // Method for creating a new playlist
     public static void createNewPlaylist(Scanner userInput, HashMap<String, ArrayList<String>> playlists,
             File playlistFile) {
         System.out.println("Enter the name for your new playlist.");
@@ -202,6 +368,7 @@ public class BetterSpotify {
         savePlaylist(playlistFile, playlists);
     }
 
+    // Creates a temporary list of stored playlists
     public static void viewMyPlaylists(
             Scanner userInput,
             HashMap<String, ArrayList<String>> playlists, File playlistFile) {
@@ -225,7 +392,8 @@ public class BetterSpotify {
         viewPlaylist(playlists, selectedPlaylistName, playlistFile, userInput);
 
         if (playlistChoice < 1 || playlistChoice > playlistNames.size()) {
-            System.out.println("Invalid playlist selection");
+            System.out.println(
+                    "This number needs to be between 1 and " + playlistNames.size() + "." + "\nPlease try again.\n");
             return;
         }
     }
@@ -247,7 +415,8 @@ public class BetterSpotify {
         userInput.nextLine();
 
         if (playListChoice < 1 || playListChoice > playlistNames.size()) {
-            System.out.println("Invalid playlist selection.");
+            System.out.println(
+                    "This number needs to be between 1 and " + playlistNames.size() + "." + "\nPlease try again.\n");
             return null;
         }
 
@@ -312,11 +481,11 @@ public class BetterSpotify {
                             break;
 
                         default:
-                            System.out.println("Invalid response.");
+                            System.out.println("Invalid response. Please select a number between 1-9.\n");
                             break;
                     }
 
-                     break;
+                    break;
 
                 case 2:
                     deleteSong(playlists, playlistName, playlistFile, userInput);
@@ -327,10 +496,48 @@ public class BetterSpotify {
                     break;
 
                 default:
-                    System.out.println("Invalid response.");
+                    System.out.println("Invalid response. Please slect a number bewteen 1-3.\n");
                     break;
             }
         }
+    }
+
+    public static void addToPlaylist(File playlistFile, songObj chosenSong, String playlistName,
+            HashMap<String, ArrayList<String>> playlists) {// Adds songs to Liked songs playlist
+        ArrayList<String> selectedPlaylist = playlists.get(playlistName);
+        if (selectedPlaylist == null) {
+            System.out.println("Playlist not found:(");
+            return;
+        }
+        String songData = chosenSong.getTitle() + "|" +
+                chosenSong.getArtist() + "|" +
+                chosenSong.getAlbum() + "|" +
+                chosenSong.getGenre() + "|" +
+                chosenSong.getdurationMs();
+
+        selectedPlaylist.add(songData);
+        savePlaylist(playlistFile, playlists);
+
+        System.out.println(chosenSong.getTitle() + " was added to " + playlistName);
+    }
+
+    public static void deleteSong(HashMap<String, ArrayList<String>> playlists, String playlistName, File playlistFile,
+            Scanner userInput) {
+        ArrayList<String> selectedPlaylist = playlists.get(playlistName);
+
+        System.out.println("Select a song to delete: ");
+        int userChoice = userInput.nextInt();
+        userInput.nextLine();
+
+        if (userChoice < 1 || userChoice > selectedPlaylist.size()) {
+            System.out.println("Invalid song selection");
+            return;
+        }
+        String removedSong = selectedPlaylist.remove(userChoice - 1);
+
+        savePlaylist(playlistFile, playlists);
+
+        System.out.println(removedSong + " was deleted from " + playlistName);
     }
 
     public static void sortPlaylist(
@@ -394,262 +601,6 @@ public class BetterSpotify {
             }
 
             selectedPlaylist.set(j + 1, currentSong);
-        }
-    }
-
-    public static void addToPlaylist(File playlistFile, songObj chosenSong, String playlistName,
-            HashMap<String, ArrayList<String>> playlists) {// Adds songs to Liked songs playlist
-        ArrayList<String> selectedPlaylist = playlists.get(playlistName);
-        if (selectedPlaylist == null) {
-            System.out.println("Playlist not found:(");
-            return;
-        }
-        String songData =
-        chosenSong.getTitle() + "|" +
-        chosenSong.getArtist() + "|" + 
-        chosenSong.getAlbum() + "|" +
-        chosenSong.getGenre() + "|" +
-        chosenSong.getdurationMs();
-
-        selectedPlaylist.add(songData);
-        savePlaylist(playlistFile, playlists);
-
-        System.out.println(chosenSong.getTitle() + " was added to " + playlistName);
-    }
-
-    public static void deleteSong(HashMap<String, ArrayList<String>> playlists, String playlistName, File playlistFile,
-            Scanner userInput) {
-        ArrayList<String> selectedPlaylist = playlists.get(playlistName);
-
-        System.out.println("Select a song to delete: ");
-        int userChoice = userInput.nextInt();
-        userInput.nextLine();
-
-        if (userChoice < 1 || userChoice > selectedPlaylist.size()) {
-            System.out.println("Invalid song selection");
-            return;
-        }
-        String removedSong = selectedPlaylist.remove(userChoice - 1);
-
-        savePlaylist(playlistFile, playlists);
-
-        System.out.println(removedSong + " was deleted from " + playlistName);
-    }
-
-    public static void mainMenu(Scanner userInput, ArrayList<songObj> songList,
-            HashMap<String, ArrayList<String>> playlists, File playlistFile) {// Handles main menu logic
-        boolean programRunning = true;
-
-        while (programRunning) {
-            System.out.println("Welcome to BetterSpotify!");
-            System.out.println("1. Recommended Search");
-            System.out.println("2. My Playlists");
-            System.out.println("3. Exit");
-            System.out.println("Please select an option: ");
-            int userOption = userInput.nextInt();
-            userInput.nextLine(); // Consume the newline character left by nextInt()
-            switch (userOption) {
-                case 1:
-                    reccomendedSearch(songList, userInput, playlists, playlistFile);
-                    break;
-                case 2:
-                    playlistMenu(userInput, playlists, playlistFile);
-                    break;
-                case 3:
-                    System.out.println("Goodbye bitch!");
-                    programRunning = false;
-                    break;
-                default:
-                    System.out.println("Invalidd response, Please try again.");
-            }
-        }
-    }
-
-    public static void reccomendedSearch(ArrayList<songObj> songList, Scanner userInput,
-            HashMap<String, ArrayList<String>> playlists, File playlistFile) {// This method is for the
-        // reccomended searching
-        // algorithm
-        System.out.println("Pleaase enter the title of a song you would like to search for: ");
-        String userTitle = userInput.nextLine();
-        // ============================================================= Title Search
-        // =========================================
-
-        songObj foundSong = null;
-        for (songObj currentSong : songList) {
-            if (currentSong.getTitle().equalsIgnoreCase(userTitle)) {
-                foundSong = currentSong;
-                break;
-            }
-
-        }
-        // =========================================== Check if Song Found AND match
-        // genres once it is ===================================
-
-        if (foundSong != null) { // Check whether the Title Search was successful
-
-            System.out.println("Song found!");
-            System.out.println("Title: " + foundSong.getTitle());
-            System.out.println("Artist: " + foundSong.getArtist());
-            System.out.println("Genre: " + foundSong.getGenre());
-
-            ArrayList<songObj> matchingGenre = new ArrayList<songObj>(); // Creates an EMPTY LIST that will hold all
-                                                                         // songs of the same genre as input song
-            for (songObj currentSong : songList) { // loops through every songObj in the full CSV
-                if (currentSong.getGenre().equalsIgnoreCase(foundSong.getGenre())) { // Compares genres of our "pointer"
-
-                    boolean sameTitle = currentSong.getTitle().equalsIgnoreCase(foundSong.getTitle()); // compares Input
-                                                                                                       // song's title
-                                                                                                       // to every other
-                                                                                                       // song's title
-
-                    boolean sameArtist = currentSong.getArtist().equalsIgnoreCase(foundSong.getArtist()); // compares
-                                                                                                          // Input
-                                                                                                          // song's
-                                                                                                          // artist to
-                                                                                                          // every other
-                                                                                                          // song's
-                                                                                                          // artist
-
-                    if (!(sameTitle && sameArtist)) {
-                        matchingGenre.add(currentSong); // Adds a REFERENCE copy of the songObj to pool of potential
-                                                        // recommendations
-                    }
-                }
-            }
-
-            // ============================================= Generating Recommendations
-            // =============================================================================
-
-            ArrayList<songObj> recommendations = new ArrayList<songObj>(); // This is where we will store oure most
-                                                                           // similar songs that get recommended to the
-                                                                           // user
-
-            ArrayList<Double> distances = new ArrayList<Double>(); // Each song has a "distance" relative to our user's
-                                                                   // song foundSong. and those distances will be stored
-                                                                   // her for comparrison later
-
-            // ==================================== Determining how similar each song in
-            // <matchingGenre> to our input song ======================================
-
-            for (songObj currentSong : matchingGenre) { // SEARCH NODE will parse through the newly made list of songs
-                                                        // that match the genre of userSong
-                double danceDifference = foundSong.getDanceability() - currentSong.getDanceability(); // Calculate the
-                                                                                                      // difference in
-                                                                                                      // danceability
-                                                                                                      // between
-                                                                                                      // foundSong and
-                                                                                                      // each song in
-                                                                                                      // our genre list
-                double energyDifference = foundSong.getEnergy() - currentSong.getEnergy(); // Calculate the difference
-                                                                                           // in energies between
-                                                                                           // energies of userSong and
-                                                                                           // each song in our genre
-                                                                                           // list
-                double distance = Math
-                        .sqrt((danceDifference * danceDifference) + (energyDifference * energyDifference)); // Were
-                                                                                                            // using the
-                                                                                                            // DISTANCE
-                                                                                                            // EQUATION
-                                                                                                            // to
-                                                                                                            // determine
-                                                                                                            // similarity
-                                                                                                            // of songs
-
-                // ======================================================= Caps the size of
-                // recommendations to FOUR ======================================
-
-                if (recommendations.size() < 4) { // We are checking if our recommendations vector is full yet
-                    recommendations.add(currentSong); // Stores current candidate song
-                    distances.add(distance); // Stores the current candidate song's calculated distance
-                }
-
-                // ======================================================= Find and replace the
-                // most "distant" song in recommendations ===========================
-
-                else { // This will run once Recommendations List if full
-                    int highestDistanceIndex = 0; // We're gonna sort through <distances> to find which has the largest
-                                                  // distance (least similar)
-
-                    for (int i = 1; i < distances.size(); i++) { // start working through the list
-                        if (distances.get(i) > distances.get(highestDistanceIndex)) { // Directly compares the current
-                                                                                      // loser to the current [i] index
-                            highestDistanceIndex = i; // Marks current index as the LOSER if it has a larger distance
-                        }
-                    }
-
-                    if (distance < distances.get(highestDistanceIndex)) { // now we're comparing new candidates to our
-                                                                          // current LOSER song
-                        recommendations.set(highestDistanceIndex, currentSong); // Replace the LOSER song if new
-                                                                                // candidate has a lower distance (is
-                                                                                // more similar) int the
-                                                                                // <recommendations> list
-                        distances.set(highestDistanceIndex, distance); // Replace the LOSER song if new candidate has a
-                                                                       // lower distance (is more similar) int the
-                                                                       // <distances> list
-                    }
-
-                }
-            }
-            // ============================================================== TEMP TEST
-            // ========================================================================================
-
-            System.out.println("\nThese songs are similar to " + foundSong.getTitle());
-
-            for (int i = 0; i < recommendations.size(); i++) {
-                songObj similarToFoundSong = recommendations.get(i); // Transfers properties of each song in
-                                                                     // <recommendations> to a temporary songObj
-
-                System.out.println(
-                        (i + 1) + ". " + similarToFoundSong.getTitle() + "- " + similarToFoundSong.getArtist());
-            }
-
-            // ============================================================== Choosing on of
-            // the recommendations
-            // ==================================================================
-
-            System.out.println("\nChoose a song to add to \"My Liked Songs Playlist\" by tying 1-4: "); // Ask user to
-                                                                                                        // select one
-                                                                                                        // song
-
-            // =============================================================== Error
-            // Handling of user input
-            // =========================================================
-            int userChoice;
-
-            while (true) { // This will repeat until a valid input is given (int 1-4)
-
-                if (userInput.hasNextInt()) { // check for INTEGER
-
-                    userChoice = userInput.nextInt(); // Reads the integer
-
-                    if (userChoice >= 1 && userChoice <= 4) { // Checks that integer is within valid range
-                                                              // <recommendations>
-
-                        break; // A valid input has been input
-
-                    }
-                }
-
-                else { // Loops immediately if input is not an integer
-
-                    userInput.next(); // clears the invalid input
-                }
-
-                System.out.println("Invalid input. Please enter a number from 1-4."); // warning of invalid input
-            }
-
-            songObj chosenSong = recommendations.get(userChoice - 1); // creates a songObj based on the index of
-                                                                      // userChoise input
-
-            System.out.println("You chose: " + chosenSong.getTitle() + " - " + chosenSong.getArtist()); // Displays the
-                                                                                                        // song chosen
-                                                                                                        // by the user
-            String selectedPlaylistName = selectPlaylist(userInput, playlists);
-            if (selectedPlaylistName != null) {
-                addToPlaylist(playlistFile, chosenSong, selectedPlaylistName, playlists);
-            }
-        } else { // foundSong remained NULL meaning no matching title was found
-            System.out.println("Song not found :( ");
         }
     }
 }
