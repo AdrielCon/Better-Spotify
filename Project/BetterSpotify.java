@@ -30,9 +30,9 @@ public class BetterSpotify {
         Scanner userInput = new Scanner(System.in);
         System.out.println("Database obj created successfully"); // test to make sure object got created properly
 
-        //emtpy ArrayList that will hold songObj
+        // emtpy ArrayList that will hold songObj
         ArrayList<songObj> songList = new ArrayList<songObj>();
-        //=====builds large csv array
+        // =====builds large csv array
         try {
             Scanner fileSearch = new Scanner(KaggleDataset, "UTF-8"); // scanner obj created that points at Kaggle
             fileSearch.nextLine(); // Make Sure Header doesn't become an object
@@ -131,7 +131,7 @@ public class BetterSpotify {
     public static String[] parseCSVLine(String line) { // Method that takes the lines we read and returns a column of
         // useful data
 
-        String[] columns = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); //Splits commas not in quotations
+        String[] columns = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1); // Splits commas not in quotations
         for (int i = 0; i < columns.length; i++) { // Loops through every column that was created by above command
             columns[i] = columns[i].trim(); // Removes unnecessary spaces from the beginning/end of the column
 
@@ -156,8 +156,14 @@ public class BetterSpotify {
             System.out.println("2. My Playlists");
             System.out.println("3. Exit");
             System.out.println("Please select an option: ");
+            if (!userInput.hasNextInt()) {
+                System.out.println("Invalid input. Please enter a number from 1-3.\n");
+                userInput.nextLine();
+                continue;
+            }
+
             int userOption = userInput.nextInt();
-            userInput.nextLine(); // Consume the newline character left by nextInt()
+            userInput.nextLine();
             switch (userOption) {
                 case 1:
                     reccomendedSearch(songList, userInput, playlists, playlistFile);
@@ -186,6 +192,7 @@ public class BetterSpotify {
         System.out.println("Please enter the title of a song you would like to search for: ");
         String userTitle = userInput.nextLine();
 
+        long startTime = System.nanoTime();
         // Ttitle search
         songObj foundSong = null;
         for (songObj currentSong : songList) {// Check if Song Found AND match genres once it is
@@ -262,6 +269,11 @@ public class BetterSpotify {
 
                 }
             }
+            long endTime = System.nanoTime();
+
+            double elaplsedTime = (endTime - startTime) / 1_000_000.0;
+
+            System.out.println("Recommendation search time: " + elaplsedTime + " ms");
 
             System.out.println("\nThese songs are similar to " + foundSong.getTitle());
 
@@ -331,6 +343,13 @@ public class BetterSpotify {
             System.out.println("4. Back to Main Menu");
             System.out.println("Please select an option: ");// Prints menu options
 
+            // Checks if the user entered a valid integer
+            if (!userInput.hasNextInt()) {
+                System.out.println("Invalid input. Please enter a number from 1-4.\n");
+                userInput.nextLine(); // Clears invalid input
+                continue; // Restarts the playlist menu
+            }
+
             int playlistOption = userInput.nextInt();
             userInput.nextLine();
 
@@ -381,16 +400,25 @@ public class BetterSpotify {
             System.out.println("[" + (i + 1) + "]" + playlistNames.get(i));
         }
         System.out.println("Select a playlist:");
-        int playlistChoice = userInput.nextInt();
-        userInput.nextLine();
-        String selectedPlaylistName = playlistNames.get(playlistChoice - 1);
-        viewPlaylist(playlists, selectedPlaylistName, playlistFile, userInput);
-
-        if (playlistChoice < 1 || playlistChoice > playlistNames.size()) {
-            System.out.println(
-                    "This number needs to be between 1 and " + playlistNames.size() + "." + "\nPlease try again.\n");
+        // Check if input is an integer
+        if (!userInput.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number.\n");
+            userInput.nextLine();
             return;
         }
+
+        int playlistChoice = userInput.nextInt();
+        userInput.nextLine();
+
+        // Check if the number is within the playlist range
+        if (playlistChoice < 1 || playlistChoice > playlistNames.size()) {
+            System.out.println("Invalid playlist selection.\n");
+            return;
+        }
+
+        // Only access the playlist after validating input
+        String selectedPlaylistName = playlistNames.get(playlistChoice - 1);
+        viewPlaylist(playlists, selectedPlaylistName, playlistFile, userInput);
     }
 
     // Lets user choose which playlist to add a song to
@@ -406,17 +434,29 @@ public class BetterSpotify {
         for (int i = 0; i < playlistNames.size(); i++) {
             System.out.println("[" + (i + 1) + "]" + playlistNames.get(i));
         }
-        System.out.println("Select a playlist:");
-        int playListChoice = userInput.nextInt();
-        userInput.nextLine();
+        while (true) {
+            System.out.println("Select a playlist:");
 
-        if (playListChoice < 1 || playListChoice > playlistNames.size()) {
-            System.out.println(
-                    "This number needs to be between 1 and " + playlistNames.size() + "." + "\nPlease try again.\n");
-            return null;
+            // Check for non-integer input
+            if (!userInput.hasNextInt()) {
+                System.out.println("Invalid input. Please enter a number.\n");
+                userInput.nextLine();
+                continue;
+            }
+
+            int playListChoice = userInput.nextInt();
+            userInput.nextLine();
+
+            // Check for number outside playlist range
+            if (playListChoice < 1 || playListChoice > playlistNames.size()) {
+                System.out.println(
+                        "This number needs to be between 1 and "
+                                + playlistNames.size() + ".\nPlease try again.\n");
+                continue;
+            }
+
+            return playlistNames.get(playListChoice - 1);
         }
-
-        return playlistNames.get(playListChoice - 1);
     }
 
     // Handles logit for displaying playlists and sorting playlist songs
@@ -440,9 +480,15 @@ public class BetterSpotify {
             System.out.println("3. Go Back");
             System.out.println("Please select an option: ");
 
+            // Checks if input is an integer
+            if (!userInput.hasNextInt()) {
+                System.out.println("Invalid input. Please enter a number from 1-3.\n");
+                userInput.nextLine(); // Clears invalid input
+                continue; // Restarts the playlist menu
+            }
+
             int playlistAction = userInput.nextInt();
             userInput.nextLine();
-
             switch (playlistAction) {
                 case 1:
                     System.out.println("\nSort By:");
@@ -456,6 +502,13 @@ public class BetterSpotify {
                     System.out.println("8. Genre - Descending");
                     System.out.println("9. Go Back");
                     System.out.println("Please select an option: ");
+
+                    // Checks if input is an integer
+                    if (!userInput.hasNextInt()) {
+                        System.out.println("Invalid input. Please enter a number from 1-9.\n");
+                        userInput.nextLine(); // Clears invalid input
+                        break; // Returns to the playlist options
+                    }
 
                     int sortChoice = userInput.nextInt();
                     userInput.nextLine();
@@ -524,11 +577,20 @@ public class BetterSpotify {
         ArrayList<String> selectedPlaylist = playlists.get(playlistName);
 
         System.out.println("Select a song to delete: ");
+
+        // Checks if input is an integer
+        if (!userInput.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number.\n");
+            userInput.nextLine(); // Clears invalid input
+            return;
+        }
+
         int userChoice = userInput.nextInt();
         userInput.nextLine();
 
+        // Checks if the selected song number exists
         if (userChoice < 1 || userChoice > selectedPlaylist.size()) {
-            System.out.println("Invalid song selection");
+            System.out.println("Invalid song selection.\n");
             return;
         }
         String removedSong = selectedPlaylist.remove(userChoice - 1);
@@ -587,13 +649,13 @@ public class BetterSpotify {
                 String previousValue = previousSongData[fieldIndex];
 
                 int comparison = previousValue.compareToIgnoreCase(currentValue);
-                //comparison logic
-                //if prev val comes before curr val it = negative
-                //if prev val is same as curr val it = 0
-                //if prev val comes after curr val it = positive
+                // comparison logic
+                // if prev val comes before curr val it = negative
+                // if prev val is same as curr val it = 0
+                // if prev val comes after curr val it = positive
 
-                if ((ascending && comparison > 0) ||//ascends if statment is true
-                        (!ascending && comparison < 0)) {//descends if statement is true
+                if ((ascending && comparison > 0) || // ascends if statment is true
+                        (!ascending && comparison < 0)) {// descends if statement is true
 
                     selectedPlaylist.set(j + 1, previousSong);
                     j--;
